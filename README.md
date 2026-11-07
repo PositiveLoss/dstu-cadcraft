@@ -5,7 +5,7 @@ An agent skill and Python helpers for Ukrainian engineering drawings using
 sheet formats, frames, Ukrainian title blocks, line types, lettering, dimensions,
 sections, specifications, technical requirements, and isometric views.
 
-[SKILL.md](SKILL.md) contains the drafting rules, source provenance, API examples,
+[SKILL.md](.agents/skills/dstu-drafting/SKILL.md) contains the drafting rules, source provenance, API examples,
 and delivery checklist. It distinguishes verified standard text from figures,
 secondary sources, and common practice; consult those qualifications when choosing
 rules for a drawing.
@@ -30,7 +30,7 @@ From this repository's root:
 ```sh
 command -v cadcraft-cli
 mkdir -p output
-python3 scripts/dstu.py output/plate.dwg
+python3 .agents/skills/dstu-drafting/scripts/dstu.py output/plate.dwg
 ```
 
 The smoke example generates `output/plate.dwg`, `output/plate.png`, and
@@ -40,7 +40,7 @@ To build your own drawing, run this Python code from the repository root:
 
 ```python
 import sys
-sys.path.insert(0, "scripts")
+sys.path.insert(0, ".agents/skills/dstu-drafting/scripts")
 import dstu
 
 cad = dstu.new_drawing(scale=1)
@@ -58,7 +58,7 @@ follow the ISO note and projection-symbol requirements in the skill.
 ## Codex, Claude Code, and Antigravity
 
 Opening this checkout as a workspace exposes the same `dstu-drafting` skill to
-all three tools through relative symlinks:
+all three tools through self-contained skill directories:
 
 | Agent | Skill location | Repository guidance |
 | --- | --- | --- |
@@ -66,26 +66,31 @@ all three tools through relative symlinks:
 | Claude Code | `.claude/skills/dstu-drafting/` | `CLAUDE.md` |
 | Antigravity | `.agents/skills/dstu-drafting/` (also `.agent/skills/dstu-drafting/` for compatibility) | `.agent/rules/dstu-cadcraft.md` |
 
-The root `SKILL.md` and `scripts/` remain the single source of truth. Clone with
-symlink support enabled; when copying a skill elsewhere, copy the linked contents
-rather than the links alone.
+Each directory contains real copies of `SKILL.md` and `scripts/`, with no
+symlinks. Keep all three copies in sync when changing the skill.
 
-To install into another project's skill directory, run **one** of these commands
-from that project's root (the destination must not already exist):
+To install into another project, clone this repository outside that project and
+copy the appropriate skill directory into the project's matching directory:
 
 ```sh
-# Codex or current Antigravity
-git clone https://github.com/PositiveLoss/dstu-cadcraft.git .agents/skills/dstu-drafting
+git clone https://github.com/PositiveLoss/dstu-cadcraft.git /tmp/dstu-cadcraft
+
+# Codex or current Antigravity (run from your project's root)
+mkdir -p .agents/skills
+cp -R /tmp/dstu-cadcraft/.agents/skills/dstu-drafting .agents/skills/
 
 # Claude Code
-git clone https://github.com/PositiveLoss/dstu-cadcraft.git .claude/skills/dstu-drafting
+mkdir -p .claude/skills
+cp -R /tmp/dstu-cadcraft/.claude/skills/dstu-drafting .claude/skills/
 
 # Antigravity versions using the legacy directory
-git clone https://github.com/PositiveLoss/dstu-cadcraft.git .agent/skills/dstu-drafting
+mkdir -p .agent/skills
+cp -R /tmp/dstu-cadcraft/.agent/skills/dstu-drafting .agent/skills/
 ```
 
-The clone's root is itself a complete skill. Restart or reload your agent after
-installation if needed, then ask, for example:
+Choose the command for your agent and use a destination that does not already
+contain this skill. Restart or reload your agent after installation if needed,
+then ask, for example:
 
 > Use dstu-drafting to create an A3 drawing of a 120 × 80 mm steel plate with a
 > central Ø30 hole, Ukrainian title block, dimensions, and DWG/PNG/PDF outputs.
@@ -97,12 +102,12 @@ Discovery conventions: [Codex skills](https://developers.openai.com/codex/skills
 ## Development
 
 ```sh
-python3 -m py_compile scripts/cadcraft_build.py scripts/dstu.py
+python3 -m compileall -q .agents/skills/dstu-drafting/scripts .claude/skills/dstu-drafting/scripts .agent/skills/dstu-drafting/scripts
 mkdir -p output
-python3 scripts/dstu.py output/dstu_smoke.dwg
+python3 .agents/skills/dstu-drafting/scripts/dstu.py output/dstu_smoke.dwg
 cadcraft-cli info output/dstu_smoke.dwg
 ```
 
 For changes affecting drawings, render and inspect the PNG, check PDF lineweights,
-and follow the checklist in `SKILL.md`. Report missing engine or font dependencies
+and follow the checklist in the skill’s `SKILL.md`. Report missing engine or font dependencies
 and any unverified rules. Keep generated files in `output/`.
